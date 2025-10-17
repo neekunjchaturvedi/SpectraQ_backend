@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import config from "./config";
+import authRoutes from "./api/routes/authroutes";
 
 const app = express();
 
@@ -11,6 +12,11 @@ app.use(cors());
 app.use(express.json());
 
 // --- API Routes ---
+app.get("/api/v1", (req: Request, res: Response) => {
+  res.status(200).json({ message: "Welcome to the Auth API! 👋" });
+});
+app.use("/api/v1/auth", authRoutes);
+
 app.get("/", (req: Request, res: Response) => {
   res.status(200).json({ message: "Welcome to the Auth API! 👋" });
 });
