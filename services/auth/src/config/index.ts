@@ -65,18 +65,4 @@ export default {
     process.env.RESET_TOKEN_EXPIRES_HOURS || "1",
     10
   ),
-
-  // Logging
-  LOG_LEVEL: process.env.LOG_LEVEL || "info",
-  LOG_FORMAT: process.env.LOG_FORMAT || "combined",
-
-  // API Configuration
-  API_VERSION: process.env.API_VERSION || "v1",
-  REQUEST_TIMEOUT_MS: parseInt(process.env.REQUEST_TIMEOUT_MS || "30000", 10),
-
-  // Health Check
-  HEALTH_CHECK_INTERVAL_MS: parseInt(
-    process.env.HEALTH_CHECK_INTERVAL_MS || "30000",
-    10
-  ),
 };
