@@ -48,16 +48,6 @@ export default {
     10
   ),
 
-  // Rate Limiting
-  RATE_LIMIT_WINDOW_MS: parseInt(
-    process.env.RATE_LIMIT_WINDOW_MS || "900000",
-    10
-  ), // 15 minutes
-  RATE_LIMIT_MAX_REQUESTS: parseInt(
-    process.env.RATE_LIMIT_MAX_REQUESTS || "100",
-    10
-  ),
-
   // Security
   BCRYPT_ROUNDS: parseInt(process.env.BCRYPT_ROUNDS || "12", 10),
   OTP_EXPIRES_MINUTES: parseInt(process.env.OTP_EXPIRES_MINUTES || "5", 10),
