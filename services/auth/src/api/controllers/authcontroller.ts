@@ -10,11 +10,10 @@ import { publishToQueue } from "../../messaging/publisher";
 const authService = new AuthService(new AuthRepository());
 
 const register = async (req: Request, res: Response, next: NextFunction) => {
-  const { role, email, password, mobileNumber, firstName, lastName, username } =
+  const { email, password, mobileNumber, firstName, lastName, username } =
     req.body;
 
   if (
-    !role ||
     !email ||
     !password ||
     !mobileNumber ||
@@ -27,6 +26,7 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
 
   try {
     const name = `${firstName} ${lastName}`;
+    const role = "user";
     const { message, userId } = await authService.register({
       email,
       password,
