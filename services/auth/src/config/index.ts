@@ -23,7 +23,7 @@ export default {
 
   // CORS Configuration
   CLIENT_URL: process.env.CLIENT_URL || "http://localhost:3000",
-  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS, // Comma-separated list
+  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS,
   CORS_CREDENTIALS: process.env.CORS_CREDENTIALS === "true" || true,
 
   // Email Configuration

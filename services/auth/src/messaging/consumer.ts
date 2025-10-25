@@ -1,86 +1,28 @@
 import { getChannel } from "./channelManager";
-import { Message } from "amqplib";
+import { sendMail } from "../utils/emails/sendMail";
+import { RabbitMQQueues } from "../interfaces";
 
-interface ConsumeOptions {
-  maxRetries?: number;
-  retryDelayMs?: number;
-  deadLetterQueue?: string;
-}
-
-export async function consumeFromQueue(
-  queue: string,
-  callback: (data: any) => Promise<void>,
-  options: ConsumeOptions = {}
-) {
-  const { maxRetries = 3, retryDelayMs = 5000, deadLetterQueue } = options;
-
-  const channel = await getChannel("consumer");
+export async function startEmailConsumer() {
+  const channel = await getChannel("email-consumer");
+  const queue = RabbitMQQueues.EMAIL_QUEUE;
   await channel.assertQueue(queue, { durable: true });
-
-  // Set up dead letter queue if specified
-  if (deadLetterQueue) {
-    await channel.assertQueue(deadLetterQueue, { durable: true });
-  }
-
-  channel.consume(queue, async (msg: Message | null) => {
-    if (!msg) return;
-
-    try {
-      const data = JSON.parse(msg.content.toString());
-      await callback(data);
-      channel.ack(msg);
-      console.log(`✅ Message processed successfully from ${queue}`);
-    } catch (err) {
-      const headers = msg.properties.headers || {};
-      const currentRetryCount = (headers["x-retry-count"] as number) || 0;
-
-      console.error(
-        `❌ Error processing message from ${queue}, retry count: ${currentRetryCount}`,
-        err
-      );
-
-      if (currentRetryCount < maxRetries) {
-        // Exponential backoff for retries
-        const delay = retryDelayMs * Math.pow(2, currentRetryCount);
-
-        setTimeout(() => {
-          channel.sendToQueue(queue, msg.content, {
-            headers: {
-              "x-retry-count": currentRetryCount + 1,
-              "x-first-death-reason":
-                headers["x-first-death-reason"] || "rejected",
-            },
-            persistent: true,
-          });
-        }, delay);
-
-        console.log(
-          `🔄 Retrying message in ${delay}ms (attempt ${
-            currentRetryCount + 1
-          }/${maxRetries})`
-        );
-      } else {
-        if (deadLetterQueue) {
-          // Send to dead letter queue
-          channel.sendToQueue(deadLetterQueue, msg.content, {
-            headers: {
-              "x-retry-count": currentRetryCount,
-              "x-death-reason": "max-retries-exceeded",
-              "x-original-queue": queue,
-            },
-            persistent: true,
-          });
-          console.log(
-            `💀 Message sent to dead letter queue: ${deadLetterQueue}`
-          );
-        } else {
-          console.error(`🚫 Discarding message after ${maxRetries} retries.`);
+  channel.consume(
+    queue,
+    async (msg) => {
+      if (!msg) return;
+      try {
+        const parsed = JSON.parse(msg.content.toString());
+        await sendMail(parsed.email, parsed.templateType, parsed.data);
+        channel.ack(msg);
+      } catch (err) {
+        console.error("Email consumer error:", err);
+        try {
+          channel.nack(msg, false, false);
+        } catch (e) {
+          console.error("nack failed", e);
         }
       }
-
-      channel.ack(msg);
-    }
-  });
-
-  console.log(`👂 Listening to queue: ${queue}`);
+    },
+    { noAck: false }
+  );
 }

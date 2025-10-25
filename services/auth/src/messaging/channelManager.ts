@@ -1,7 +1,7 @@
 import { connect, Channel, Connection } from "amqplib";
 import config from "../config";
 
-const RABBITMQ_URL = config.RABBITMQ_URL || "amqp://localhost";
+const RABBITMQ_URL = config.RABBITMQ_URL;
 let connection: Connection | null = null;
 const channels: Record<string, Channel> = {};
 

@@ -113,20 +113,14 @@ const resendOtp = async (req: Request, res: Response, next: NextFunction) => {
   }
 
   try {
+    const user = await authService.getUserByEmail(email);
     const otp = await authService.generateAndStoreOtp(email);
 
-    // Get user details for the name
-    const user = await authService.userEmailById(
-      (
-        await authService.login(email, "")
-      ).id // This is a hack, you might want to create a separate method
-    );
-
     publishToQueue(RabbitMQQueues.EMAIL_QUEUE, {
-      userId: null,
+      userId: user.id || null,
       templateType: "OTP",
       data: {
-        name: user.username || "User", // Use username or fallback
+        name: (user as any).username || (user as any).email || "User",
         otp: otp,
       },
       email,

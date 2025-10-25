@@ -31,6 +31,14 @@ export class AuthService {
     return rest;
   }
 
+  async getUserByEmail(email: string) {
+    if (!email) throw new ValidationError("Missing email");
+    const user = await this._repo.findUserByEmail(email);
+    if (!user) throw new NotFoundError("User not found");
+    const { password, salt, ...rest } = user;
+    return rest;
+  }
+
   async register(data: {
     email: string;
     password: string;
